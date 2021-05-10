@@ -1,0 +1,27 @@
+version: "3.7"
+
+services:
+  db:
+    container_name: caixa-eletronico-db
+    image: postgres
+    volumes:
+      - psql_volume:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: linx@123
+      POSTGRES_DB: caixa_eletronico
+      POSTGRES_USER: linx
+    ports:
+      - "5432:5432"
+
+  app:
+    build: ./
+    container_name: caixa-eletronico-app
+    volumes:
+      - ./:/var/www/app
+    ports:
+      - "8080:8080"
+    links:
+      - db
+      
+volumes:
+  psql_volume:
