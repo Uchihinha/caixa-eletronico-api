@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\AccountTransaction;
 use App\Models\Account;
 use App\Models\Statement;
 use Illuminate\Http\Request;
@@ -29,28 +30,21 @@ class AccountController extends Controller
     }
 
     public function deposit(Request $request, int $accountId) {
-        $validator = $this->validate($request->all(), [
+        $this->validate($request->all(), [
             'amount' => 'required|numeric|min:1'
         ]);
 
-        $data = $validator->validated();
-        $data['statement_type_id'] = 1;
-        $data['account_id'] = $accountId;
+        AccountTransaction::dispatch([
+            'account'               => auth()->user()->accounts->where('id', $accountId)->first(),
+            'statement_type_id'     => 1,
+            'amount'                => $request->amount
+        ]);
 
-        // MANDAR PRA FILA\
-        DB::transaction(function () use($data, $request, $accountId) {
-            Statement::create($data);
-
-            $account = auth()->user()->accounts->where('id', $accountId)->first();
-            $account->balance += $request->amount;
-            $account->save();
-        });
-
-        return response()->json(['message' => 'Depósito realizado com sucesso!'], 201);
+        return response()->json(['message' => 'Depósito enviado para a fila de transações com sucesso!'], 201);
     }
 
     public function withdraw(Request $request, int $accountId) {
-        $validator = $this->validate($request->all(), [
+        $this->validate($request->all(), [
             'amount' => 'required|numeric|min:20'
         ]);
 
@@ -60,17 +54,11 @@ class AccountController extends Controller
 
         $moneyBills = validateMoneyBill($request->amount);
 
-        $data = $validator->validated();
-        $data['statement_type_id'] = 2;
-        $data['account_id'] = $accountId;
-
-        // MANDAR PRA FILA
-        DB::transaction(function () use($data, $request, $account) {
-            Statement::create($data);
-
-            $account->balance -= $request->amount;
-            $account->save();
-        });
+        AccountTransaction::dispatch([
+            'account'               => $account,
+            'statement_type_id'     => 2,
+            'amount'                => $request->amount
+        ]);
 
         $message = formatWithdrawResponse($moneyBills);
 

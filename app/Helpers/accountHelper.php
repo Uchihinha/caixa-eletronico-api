@@ -22,7 +22,7 @@ if (!function_exists('validateMoneyBill')) {
 
 if (!function_exists('formatWithdrawResponse')) {
     function formatWithdrawResponse(array $moneyBills) {
-        $message = 'Sucesso! O saque será realizado com';
+        $message = 'Sucesso! O saque será enviado para a fila de transação. Composto por:';
         $comma = '';
 
         foreach ($moneyBills as $key => $value) {

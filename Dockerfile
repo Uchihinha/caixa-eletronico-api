@@ -2,6 +2,9 @@ FROM ambientum/php:7.4-nginx
 
 USER root
 
+COPY ./start.sh /usr/local/bin/start
+RUN chmod u+x /usr/local/bin/start
+
 RUN apk update && \
     apk add php7-dev@php && \
 	apk add php7-pear@php && \
@@ -18,3 +21,5 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 USER ambientum
 
 WORKDIR /var/www/app
+
+CMD ["/usr/local/bin/start"]
