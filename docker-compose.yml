@@ -13,6 +13,18 @@ services:
     ports:
       - "5432:5432"
 
+  db-test:
+    container_name: caixa-eletronico-db-test
+    image: postgres
+    volumes:
+      - test_psql_volume:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: linx@123
+      POSTGRES_DB: caixa_eletronico
+      POSTGRES_USER: linx
+    ports:
+      - "5433:5432"
+
   app:
     build: ./
     container_name: caixa-eletronico-app
@@ -22,6 +34,8 @@ services:
       - "8080:8080"
     links:
       - db
-      
+      - db-test
+
 volumes:
   psql_volume:
+  test_psql_volume:

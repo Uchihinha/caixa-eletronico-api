@@ -16,10 +16,12 @@ class RolesSeeder extends Seeder
     {
         //
         Role::firstOrCreate([
+            'id'    => 1,
             'role'  => 'user'
         ]);
 
         Role::firstOrCreate([
+            'id'    => 2,
             'role'  => 'administrator'
         ]);
     }

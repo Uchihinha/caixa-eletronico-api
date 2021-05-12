@@ -16,10 +16,12 @@ class AccountTypesSeeder extends Seeder
     {
         //
         AccountType::firstOrCreate([
+            'id'    => 1,
             'name'      => 'Poupança'
         ]);
 
         AccountType::firstOrCreate([
+            'id'    => 2,
             'name'      => 'Corrente'
         ]);
     }

@@ -1,6 +1,6 @@
 <?php
 
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use App\Exceptions\InsufficientMoneyBillsException;
 
 if (!function_exists('validateMoneyBill')) {
     function validateMoneyBill(float $amount) {
@@ -14,7 +14,7 @@ if (!function_exists('validateMoneyBill')) {
             $remainder = $remainder % $note;
         }
 
-        if ($remainder) throw new HttpException(422, 'Não há notas suficientes para a sua solicitação!');
+        if ($remainder) throw new InsufficientMoneyBillsException();
 
         return $data;
     }
