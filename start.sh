@@ -2,18 +2,29 @@
 echo "Aliasing $FRAMEWORK"
 sudo ln -s /etc/nginx/sites/$FRAMEWORK.conf /etc/nginx/sites/enabled.conf
 
-# cp .env.example .env
+# cria o arquivo de configuração de ambiente
+cp .env.example .env
 
-# php artisan config:cache
+# instala as dependências do projeto
+composer install
 
-# php artisan migrate --database=pgsql_test
+# cria e configura o banco para os testes
+sed -i '12s/.*/DB_HOST=db-test/' .env
+php /var/www/app/artisan config:cache
+php /var/www/app/artisan migrate
+php /var/www/app/artisan passport:install
 
-# php artisan migrate --seed
+# cria e configura o banco principal
+sed -i '12s/.*/DB_HOST=db/' .env
+php /var/www/app/artisan config:cache
+php /var/www/app/artisan migrate --seed
+php /var/www/app/artisan passport:install
 
-# php artisan passport:install
-
+# liga o fpm, serviço que vai rodar o php no server
 nohup /usr/sbin/php-fpm -y /etc/php7/php-fpm.conf -F -O 2>&1 &
 
+# liga a fila do Laravel para ficar escutando as requisições da aplicação
 nohup php /var/www/app/artisan queue:work --verbose --tries=3 --timeout=90 &
 
+# liga o servidor nginx
 nginx
