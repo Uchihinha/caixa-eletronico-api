@@ -1,62 +1,67 @@
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# APIs para sistema de Caixa Eletrônico
 
-## About Laravel
+Esta aplicação tem como objetivo simular operações de um caixa eletrônico. Foi utilizado o framework PHP Laravel (8.12) + PostgreSQL + Docker.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Instalação e Configuração
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Primeiramente, deve-se ter o Docker instalado no ambiente.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Assumindo isso, clone o projeto e inicie os containers.
 
-## Learning Laravel
+```
+docker-compose -f "docker-compose.yml" up -d --build
+```
+Após isso, irá rodar um script de inicialização, o qual ia fazer os seguintes processos:
+```
+# cria o arquivo de configuração de ambiente
+cp .env.example .env
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+# instala as dependências do projeto
+composer install
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# cria e configura o banco para os testes
+sed -i '12s/.*/DB_HOST=db-test/' .env
+php /var/www/app/artisan config:cache
+php /var/www/app/artisan migrate
+php /var/www/app/artisan passport:install
 
-## Laravel Sponsors
+# cria e configura o banco principal
+sed -i '12s/.*/DB_HOST=db/' .env
+php /var/www/app/artisan config:cache
+php /var/www/app/artisan migrate --seed
+php /var/www/app/artisan passport:install
+```
+Você pode acompanhar todo esse processo acessando os logs em tempo real do container. Para isso, execute o seguinte comando:
+```
+docker logs --tail 1000 -f <<CONTAINER_ID>>
+```
+Para saber o ID do container, basta executar o seguinte comando:
+```
+docker ps
+```
+e olhar para a coluna "CONTAINER ID".
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+Após tudo isso configurado, o ambiente estará rodando, por padrão, em seu endereço local na porta 8080, pode ser acessada sua página inicial em [http://localhost:8080](http://localhost:8080).
 
-### Premium Partners
+## A Aplicação
+Acompanhe na [documentação](https://documenter.getpostman.com/view/6846169/TzRUAmtU) para um melhor entendimento.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
+O sistema trabalha com conceito de *roles* (permissões) em 2 níveis, basicamente usuário comum e administrador.
 
-## Contributing
+O usuário comum tem acesso aos dados de suas contas bancárias, depósito e saque.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+O usuário administrador tem acesso ao gerenciamento de usuários e contas bancárias, sendo o único responsável pela atribuição de uma conta a um usuário.
 
-## Code of Conduct
+A documentação tem uma sessão separada para os requests exclusivos de administradores, marcada pela flag (ADMIN).
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Testes
+Foi utilizada a própria estrutura do Laravel para os testes da aplicação, sendo eles unitários (*tests/Unit*) e de integração (*tests/Feature*).
 
-## Security Vulnerabilities
+Para rodar os testes, basta executar o seguinte comando:
+```
+php artisan test
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Também foi criado um banco de dados em um container separado para a realização dos testes de integração.
